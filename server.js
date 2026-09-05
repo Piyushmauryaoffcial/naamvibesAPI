@@ -69,7 +69,7 @@ const startServer = async () => {
     console.log('MongoDB connected successfully');
     await ensureDefaultAdmin();
     await repairKnownNameGenders();
-    app.listen(PORT, () => console.log(`Baby Names API running on http://localhost:${PORT}`));
+    app.listen(PORT, '0.0.0.0', () => console.log(`Baby Names API running on http://localhost:${PORT}`));
   } catch (error) {
     console.error('MongoDB connection error:', error.message);
     process.exitCode = 1;
