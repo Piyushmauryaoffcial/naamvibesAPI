@@ -1,0 +1,178 @@
+{
+  "info": {
+    "_postman_id": "d6a3d8ef-3d76-4bcb-a0c8-6c68d7e3d5b6",
+    "name": "Hindu Baby Names API",
+    "description": "REST API collection for the Hindu Baby Names backend. Run Register User first, then set adminToken to an admin JWT for admin-only requests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000/api/v1" },
+    { "key": "token", "value": "" },
+    { "key": "partnerToken", "value": "" },
+    { "key": "adminToken", "value": "" },
+    { "key": "partnerCode", "value": "" },
+    { "key": "nameId", "value": "" },
+    { "key": "nameId2", "value": "" },
+    { "key": "userId", "value": "" },
+    { "key": "email", "value": "piyush@example.com" },
+    { "key": "password", "value": "Password123!" }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "const json = pm.response.json();",
+            "if (json.token) pm.collectionVariables.set('token', json.token);",
+            "if (json.user && json.user.partnerCode) pm.collectionVariables.set('partnerCode', json.user.partnerCode);"
+          ] } }],
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Piyush Maurya\",\n  \"email\": \"{{$randomEmail}}\",\n  \"password\": \"Password123!\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/auth/register" }
+        },
+        {
+          "name": "Login",
+          "event": [{ "listen": "test", "script": { "exec": ["const json = pm.response.json();", "if (json.token) pm.collectionVariables.set('token', json.token);"] } }],
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/auth/login" }
+        },
+        {
+          "name": "Link Partner",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "body": { "mode": "raw", "raw": "{\n  \"partnerCode\": \"{{partnerCode}}\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/auth/link-partner" }
+        }
+        ,
+        {
+          "name": "Get My Profile",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "******" }], "url": "{{baseUrl}}/auth/profile" }
+        },
+        {
+          "name": "Update My Profile",
+          "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "******" }], "body": { "mode": "raw", "raw": "{\n  \"phone\": \"+919876543210\",\n  \"gender\": \"boy\",\n  \"address\": { \"city\": \"Pune\", \"country\": \"India\" },\n  \"preferences\": { \"language\": \"en\" },\n  \"settings\": { \"notifications\": true }\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/auth/profile" }
+        },
+        {
+          "name": "Change Password",
+          "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "******" }], "body": { "mode": "raw", "raw": "{\n  \"currentPassword\": \"Password123!\",\n  \"newPassword\": \"NewPassword123!\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/auth/change-password" }
+        },
+        {
+          "name": "Admin List Users",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "******" }], "url": "{{baseUrl}}/auth/admin/users?page=1&limit=20" }
+        },
+        {
+          "name": "Admin Update User Approval",
+          "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "******" }], "body": { "mode": "raw", "raw": "{\n  \"approved\": true\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/auth/admin/users/{{userId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Astrology",
+      "item": [{
+        "name": "Calculate Birth Names",
+        "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"birthDate\": \"2025-06-12\",\n  \"birthTime\": \"18:55\",\n  \"gender\": \"boy\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/astro/calculate-birth-names" }
+      }]
+    },
+    {
+      "name": "Names",
+      "item": [
+        {
+          "name": "List Names",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/names?gender=boy&rashi=Aries&nakshatra=Ashwini&religion=Hindu&origin=Sanskrit&minLength=3&maxLength=8&sortBy=popular&year=2026&month=6&page=1&limit=20" }
+        },
+        {
+          "name": "Browse by Alphabet",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/names/alphabet?letter=A" }
+        },
+        {
+          "name": "Popular Names",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/names/popular" }
+        },
+        {
+          "name": "Name of the Day",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/names/name-of-day" }
+        },
+        {
+          "name": "Random Names",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/names/random?limit=6" }
+        },
+        {
+          "name": "Name Categories",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/names/categories" }
+        },
+        {
+          "name": "Find Names by Rashi",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/names?rashi=Aries&limit=20" }
+        },
+        {
+          "name": "Find Names by Religion",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/names?religion=Hindu&limit=20" }
+        },
+        {
+          "name": "Find Names by Category",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/names?category=modern&limit=20" }
+        },
+        {
+          "name": "Search Names (AI fallback)",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/names?search=rare%20Hindu%20boy%20name%20meaning%20brave&gender=boy&page=1&limit=5" }
+        },
+        {
+          "name": "AI Baby Name Suggestions",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"gender\": \"girl\",\n  \"theme\": \"calm, meaningful, Sanskrit\",\n  \"count\": 5\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/names/ai-suggest" }
+        },
+        {
+          "name": "Personalized Recommendations",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/names/recommendations" }
+        },
+        {
+          "name": "Name Compatibility Score",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"nameIds\": [\"{{nameId}}\", \"{{nameId2}}\"]\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/names/compatibility" }
+        },
+        {
+          "name": "Couple Shared Shortlist",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/names/shared-shortlist" }
+        },
+        {
+          "name": "Get My Final Shortlist",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "******" }], "url": "{{baseUrl}}/names/shortlist" }
+        },
+        {
+          "name": "Toggle Final Shortlist",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "******" }], "url": "{{baseUrl}}/names/shortlist/{{nameId}}" }
+        },
+        {
+          "name": "Get Name By ID",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/names/{{nameId}}" }
+        },
+        {
+          "name": "Blend Parent Names",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"fatherName\": \"Piyush\",\n  \"motherName\": \"Ananya\",\n  \"gender\": \"girl\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/names/blend-parents" }
+        },
+        {
+          "name": "Generate AI Names (Admin)",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{adminToken}}" }], "body": { "mode": "raw", "raw": "{\n  \"gender\": \"boy\",\n  \"rashi\": \"Aries\",\n  \"startingLetter\": \"A\",\n  \"deity\": \"Shiva\",\n  \"theme\": \"modern, calm, unique\",\n  \"count\": 5,\n  \"year\": 2026,\n  \"month\": 6\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/names/ai-generate" }
+        },
+        {
+          "name": "Create Name (Admin)",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{adminToken}}" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Aarav\",\n  \"devanagari\": \"आरव\",\n  \"gender\": \"boy\",\n  \"meaning\": \"Peaceful wisdom\",\n  \"startingLetter\": \"A\",\n  \"astrology\": { \"rashi\": { \"en\": \"Aries\", \"hi\": \"Mesha\" } },\n  \"attributes\": { \"luckyColors\": [\"Red\"], \"deities\": [\"Shiva\"] }\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/names" }
+        },
+        {
+          "name": "Update Name (Admin)",
+          "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{adminToken}}" }], "body": { "mode": "raw", "raw": "{\n  \"meaning\": \"Peaceful and wise\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/names/{{nameId}}" }
+        },
+        {
+          "name": "Delete Name (Admin)",
+          "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUrl}}/names/{{nameId}}" }
+        },
+        {
+          "name": "Toggle Favorite",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/names/favorite/{{nameId}}" }
+        },
+        {
+          "name": "Get Favorites",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/names/favorites" }
+        },
+        {
+          "name": "Get Partner Matches",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/names/partner-matches" }
+        }
+      ]
+    }
+  ]
+}
