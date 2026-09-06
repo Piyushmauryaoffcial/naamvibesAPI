@@ -150,6 +150,7 @@ export const generatePremiumCollection = async (req, res) => {
     if (preferences.nakshatra) filter['astrology.nakshatra'] = new RegExp(String(preferences.nakshatra).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
     if (preferences.startingLetters.length) filter.startingLetter = { $in: preferences.startingLetters };
     if (preferences.meaning) filter.meaning = new RegExp(String(preferences.meaning).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+    const preferenceFilter = { ...filter };
     const requestedCount = Math.min(Math.max(Number(count) || 12, 1), 30);
     const aiSuggestions = await generatePremiumBabyNames({
       parentNames,
@@ -164,9 +165,12 @@ export const generatePremiumCollection = async (req, res) => {
     const aiNames = aiSuggestions.map(item => item.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
     if (aiNames.length) filter.name = { $in: aiNames.map(name => new RegExp(`^${name}$`, 'i')) };
     let names = await BabyName.find(filter).sort({ popularityScore: -1, name: 1 }).limit(requestedCount);
-    if (names.length < 6) {
-      const fallbackFilter = preferences.gender ? { gender: preferences.gender } : {};
-      names = await BabyName.find(fallbackFilter).sort({ popularityScore: -1, name: 1 }).limit(requestedCount);
+    if (names.length < requestedCount) {
+      // If AI suggests names that are not in our catalogue, fill from the
+      // user's actual preferences instead of returning unrelated names.
+      names = await BabyName.find(preferenceFilter)
+        .sort({ popularityScore: -1, name: 1 })
+        .limit(requestedCount);
     }
     const aiReasonByName = new Map(aiSuggestions.map(item => [item.name.toLowerCase(), item.reason]));
     const selectedNames = names.map(name => ({ name: name._id, matchScore: scoreName(name, preferences), explanation: explainName(name, preferences, aiReasonByName.get(name.name.toLowerCase())) }));
