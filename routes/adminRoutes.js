@@ -4,6 +4,7 @@ import { protect, protectAdmin } from '../middleware/auth.js';
 import { listAllBabies } from '../controllers/babyController.js';
 import { listAllSearchHistory } from '../controllers/searchHistoryController.js';
 import { listPremiumCollections, listPremiumCollectionRequests } from '../controllers/premiumNameController.js';
+import { listContactLeads } from '../controllers/contactController.js';
 
 const router = express.Router();
 router.use(protect, protectAdmin);
@@ -13,4 +14,5 @@ router.get('/babies', listAllBabies);
 router.get('/search-history', listAllSearchHistory);
 router.get('/premium-names', listPremiumCollections);
 router.get('/premium-name-requests', listPremiumCollectionRequests);
+router.get('/contact-leads', listContactLeads);
 export default router;
