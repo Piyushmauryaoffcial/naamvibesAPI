@@ -113,7 +113,7 @@ export const nameCategories = async (req, res) => {
 
 export const listNames = async (req, res) => {
   try {
-    const { gender, rashi, nakshatra, color, deity, numerology, search, religion, category, origin, meaning } = req.query;
+    const { gender, rashi, nakshatra, color, deity, numerology, search, religion, category, origin, meaning, startingLetter } = req.query;
     const page = Math.max(Number.parseInt(req.query.page, 10) || 1, 1);
     const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 20, 1), 100);
     const filter = {};
@@ -133,6 +133,7 @@ export const listNames = async (req, res) => {
     if (category) filter.categories = new RegExp(String(category), 'i');
     if (origin) filter.origin = new RegExp(String(origin), 'i');
     if (meaning) filter.meaning = new RegExp(String(meaning), 'i');
+    if (startingLetter) filter.startingLetter = String(startingLetter).trim().slice(0, 1).toUpperCase();
     if (req.query.minLength || req.query.maxLength) {
       filter.$expr = { $and: [
         ...(req.query.minLength ? [{ $gte: [{ $strLenCP: '$name' }, Number(req.query.minLength)] }] : []),
@@ -211,10 +212,12 @@ export const listNames = async (req, res) => {
 
 export const getNameById = async (req, res) => {
   try {
-    if (!mongoose.isValidObjectId(req.params.id)) {
-      return res.status(404).json({ success: false, message: 'Name not found' });
-    }
-    const name = await BabyName.findById(req.params.id);
+    const identifier = decodeURIComponent(req.params.id);
+    const name = mongoose.isValidObjectId(identifier)
+      ? await BabyName.findById(identifier)
+      : await BabyName.findOne({
+        name: new RegExp(`^${identifier.split('-').map(part => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('[ -]+')}$`, 'i')
+      });
     if (!name) return res.status(404).json({ success: false, message: 'Name not found' });
     res.status(200).json({ success: true, data: name });
   } catch (error) {
