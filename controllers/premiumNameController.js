@@ -97,7 +97,13 @@ export const requestPublicPremiumPdf = async (req, res) => {
   const doc = new PDFDocument({ size: 'A4', margin: 54, bufferPages: true });
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-  doc.pipe(res);
+  const pdfChunks = [];
+  doc.on('data', chunk => pdfChunks.push(chunk));
+  doc.on('end', () => res.end(Buffer.concat(pdfChunks)));
+  doc.on('error', error => {
+    if (!res.headersSent) res.status(500).json({ success: false, message: 'Unable to generate PDF', error: error.message });
+    else res.destroy(error);
+  });
   doc.fillColor('#172033').fontSize(28).font('Helvetica-Bold').text('NaamVibes');
   doc.fillColor('#ea580c').fontSize(11).text('PREMIUM BABY NAME COLLECTION', { characterSpacing: 1.5 });
   doc.moveDown(1.5).fillColor('#172033').fontSize(22).text(definition.title);
@@ -112,7 +118,8 @@ export const requestPublicPremiumPdf = async (req, res) => {
   });
   const pages = doc.bufferedPageRange();
   for (let page = pages.start; page < pages.start + pages.count; page += 1) {
-    doc.switchToPage(page).fillColor('#64748b').fontSize(8).text(`NaamVibes · Page ${page + 1} of ${pages.count}`, 54, 770, { align: 'center', width: 487 });
+    doc.switchToPage(page);
+    doc.fillColor('#64748b').fontSize(8).text(`NaamVibes · Page ${page + 1} of ${pages.count}`, 54, 770, { align: 'center', width: 487 });
   }
   doc.end();
 };
@@ -182,7 +189,13 @@ export const downloadPremiumPdf = async (req, res) => {
   const doc = new PDFDocument({ size: 'A4', margin: 54, bufferPages: true });
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-  doc.pipe(res);
+  const pdfChunks = [];
+  doc.on('data', chunk => pdfChunks.push(chunk));
+  doc.on('end', () => res.end(Buffer.concat(pdfChunks)));
+  doc.on('error', error => {
+    if (!res.headersSent) res.status(500).json({ success: false, message: 'Unable to generate PDF', error: error.message });
+    else res.destroy(error);
+  });
   const orange = '#ea580c';
   const ink = '#172033';
   doc.fillColor(ink).fontSize(28).font('Helvetica-Bold').text('NaamVibes');
@@ -213,7 +226,8 @@ export const downloadPremiumPdf = async (req, res) => {
   doc.text(`Date: ${new Date().toLocaleDateString('en-IN')}`);
   const range = doc.bufferedPageRange();
   for (let i = range.start; i < range.start + range.count; i += 1) {
-    doc.switchToPage(i).fillColor('#64748b').fontSize(9).text(`NaamVibes  •  Page ${i + 1} of ${range.count}`, 54, 770, { align: 'center', width: 487 });
+    doc.switchToPage(i);
+    doc.fillColor('#64748b').fontSize(9).text(`NaamVibes  •  Page ${i + 1} of ${range.count}`, 54, 770, { align: 'center', width: 487 });
   }
   doc.end();
 };
