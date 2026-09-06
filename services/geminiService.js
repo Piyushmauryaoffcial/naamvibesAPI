@@ -125,3 +125,41 @@ Return strictly a JSON array of objects:
 
   return JSON.parse(response.text.trim());
 };
+
+export const generatePremiumBabyNames = async ({ parentNames, gender, style, startingLetters, rashi, nakshatra, meaning, count = 12 }) => {
+  const prompt = `You are a careful Hindu and Sanskrit baby-name researcher.
+Suggest ${count} real, attested Indian baby names for a premium personalized naming report.
+Parents: ${parentNames || 'not provided'}
+Gender: ${gender || 'any'}
+Preferred style: ${style || 'modern Indian'}
+Starting letters: ${startingLetters?.join(', ') || 'any'}
+Rashi: ${rashi || 'any'}
+Nakshatra: ${nakshatra || 'any'}
+Meaning preference: ${meaning || 'meaningful and auspicious'}
+
+Do not invent names. Return only names that families genuinely use and provide a short reason for each suggestion.
+Return strictly valid JSON with no Markdown:
+[{"name":"Aarav","reason":"Short explanation of why this name fits the requested profile."}]`;
+  let lastError;
+  for (const key of apiKeys) {
+    const ai = new GoogleGenAI({ apiKey: key });
+    for (const candidateModel of models) {
+      try {
+        const response = await ai.models.generateContent({
+          model: candidateModel,
+          contents: prompt,
+          config: { responseMimeType: 'application/json' }
+        });
+        const result = parseResponse(response.text)
+          .filter(item => item && typeof item.name === 'string' && item.name.trim())
+          .map(item => ({ name: item.name.trim(), reason: String(item.reason || '').trim() }))
+          .slice(0, Math.min(Math.max(Number(count) || 12, 1), 30));
+        if (result.length) return result;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+  }
+  if (lastError) console.warn('Gemini premium generation unavailable:', lastError.message);
+  return [];
+};

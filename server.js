@@ -11,6 +11,7 @@ import userRoutes from './routes/userRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import babyRoutes from './routes/babyRoutes.js';
 import searchHistoryRoutes from './routes/searchHistoryRoutes.js';
+import premiumNameRoutes from './routes/premiumNameRoutes.js';
 
 dotenv.config();
 const app = express();
@@ -26,6 +27,7 @@ app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/babies', babyRoutes);
 app.use('/api/v1/search-history', searchHistoryRoutes);
+app.use('/api/v1/premium-names', premiumNameRoutes);
 
 const PORT = process.env.PORT || 5000;
 const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;
