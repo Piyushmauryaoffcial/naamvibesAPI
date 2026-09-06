@@ -1,6 +1,9 @@
 import { User } from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import { OAuth2Client } from 'google-auth-library';
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const signToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -48,7 +51,7 @@ export const login = async (req, res) => {
     if (typeof email !== 'string' || typeof password !== 'string' || !email.trim() || !password) {
       return res.status(400).json({ success: false, message: 'Email and password are required' });
     }
-    const user = await User.findOne({ email: email?.trim().toLowerCase() });
+    const user = await User.findOne({ email: email?.trim().toLowerCase() }).select('+password');
 
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({ success: false, message: 'Invalid email or password' });
@@ -62,6 +65,43 @@ export const login = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+export const googleLogin = async (req, res) => {
+  try {
+    const credential = req.body?.credential;
+    if (typeof credential !== 'string' || !credential) {
+      return res.status(400).json({ success: false, message: 'Google credential is required' });
+    }
+    if (!process.env.GOOGLE_CLIENT_ID) {
+      return res.status(503).json({ success: false, message: 'Google sign-in is not configured' });
+    }
+    const ticket = await googleClient.verifyIdToken({ idToken: credential, audience: process.env.GOOGLE_CLIENT_ID });
+    const payload = ticket.getPayload();
+    if (!payload?.sub || !payload.email || payload.email_verified !== true) {
+      return res.status(401).json({ success: false, message: 'Google account could not be verified' });
+    }
+    let user = await User.findOne({ $or: [{ googleId: payload.sub }, { email: payload.email.toLowerCase() }] });
+    if (!user) {
+      user = await User.create({
+        name: payload.name || payload.email.split('@')[0],
+        email: payload.email.toLowerCase(),
+        password: crypto.randomBytes(32).toString('hex'),
+        googleId: payload.sub,
+        photo: payload.picture,
+        partnerCode: crypto.randomBytes(3).toString('hex').toUpperCase(),
+        approved: true
+      });
+    } else if (!user.googleId) {
+      user.googleId = payload.sub;
+      if (payload.picture && !user.photo) user.photo = payload.picture;
+      await user.save();
+    }
+    const token = signToken(user._id);
+    res.json({ success: true, token, user: { id: user._id, name: user.name, email: user.email, partnerCode: user.partnerCode, role: user.role, approved: user.approved, photo: user.photo } });
+  } catch (error) {
+    res.status(401).json({ success: false, message: 'Google sign-in failed' });
   }
 };
 

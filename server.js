@@ -9,6 +9,8 @@ import astroRoutes from './routes/astroRoutes.js';
 import nameRoutes from './routes/nameRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import babyRoutes from './routes/babyRoutes.js';
+import searchHistoryRoutes from './routes/searchHistoryRoutes.js';
 
 dotenv.config();
 const app = express();
@@ -22,6 +24,8 @@ app.use('/api/v1/astro', astroRoutes);
 app.use('/api/v1/names', nameRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/babies', babyRoutes);
+app.use('/api/v1/search-history', searchHistoryRoutes);
 
 const PORT = process.env.PORT || 5000;
 const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;

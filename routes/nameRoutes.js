@@ -26,9 +26,9 @@ import { protect, protectAdmin } from '../middleware/auth.js';
 const router = express.Router();
 
 router.post('/ai-generate', protect, protectAdmin, generateWithAI);
-router.post('/ai-suggest', suggestWithAI);
-router.post('/blend-parents', combineParentsNames);
-router.post('/compatibility', getCompatibilityScore);
+router.post('/ai-suggest', protect, suggestWithAI);
+router.post('/blend-parents', protect, combineParentsNames);
+router.post('/compatibility', protect, getCompatibilityScore);
 router.get('/recommendations', protect, getPersonalizedRecommendations);
 router.get('/alphabet', browseAlphabet);
 router.get('/popular', popularNames);
