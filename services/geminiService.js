@@ -2,12 +2,19 @@ import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
 dotenv.config();
 
+const normalizeModel = (model) => {
+  const value = String(model || '').trim().replace(/^models\//, '');
+  // Gemini 1.5 Flash is no longer available for generateContent on the
+  // current API, so keep older environment configurations compatible.
+  return value === 'gemini-1.5-flash' ? 'gemini-2.5-flash' : value;
+};
+
 const models = [...new Set([
   process.env.GEMINI_MODEL,
   ...(process.env.GEMINI_MODELS || '').split(','),
-  'gemini-2.0-flash',
-  'gemini-1.5-flash'
-].filter(Boolean))];
+  'gemini-2.5-flash',
+  'gemini-2.0-flash'
+].map(normalizeModel).filter(Boolean))];
 const apiKeys = [...new Set([
   process.env.GEMINI_API_KEY,
   process.env.GEMINI_API_KEY_2,
