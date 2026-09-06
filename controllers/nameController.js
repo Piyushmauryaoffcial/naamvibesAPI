@@ -119,7 +119,13 @@ export const listNames = async (req, res) => {
     const filter = {};
 
     if (gender) filter.gender = gender.toLowerCase();
-    if (rashi) filter['astrology.rashi.en'] = new RegExp(`^${String(rashi).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
+    if (rashi) {
+      const rashiPattern = new RegExp(`^${String(rashi).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
+      filter.$or = [
+        { 'astrology.rashi.en': rashiPattern },
+        { 'astrology.rashi.hi': rashiPattern }
+      ];
+    }
     if (nakshatra) filter['astrology.nakshatra'] = new RegExp(String(nakshatra), 'i');
     if (color) filter['attributes.luckyColors'] = new RegExp(String(color), 'i');
     if (deity) filter['attributes.deities'] = new RegExp(String(deity), 'i');
